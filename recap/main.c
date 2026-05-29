@@ -50,6 +50,7 @@ int	process_cmd(char *input, t_commnds *cmnds)
 	while (cmd_i < cmnds->cmd_amount)
 	{
 		count = find_index(input + i);
+		j = 0;
 		cmnds->cmds[cmd_i].cmd[word_i] = calloc(count + 1, sizeof(char));
 		if (!cmnds->cmds[cmd_i].cmd[word_i])
 			return 0;
@@ -59,14 +60,24 @@ int	process_cmd(char *input, t_commnds *cmnds)
 			i++;
 			j++;
 		}
-		word_i++;
-		i++;
-		if (input[i] == '|')
+		if (input[i] == ' ')
 		{
+			word_i++;
+			while (input[++i] && input[i] == ' ')
+				i++;
+		}
+		else
+		{
+			if (input[i] == '|')
+			while (input[++i] && input[i] == ' ')
+				i++;
 			cmd_i++;
 			word_i = 0;
-			j = 0;
 		}
+		
+
+		if (!input[i])
+			break;
 	}
 	return (1);
 }
@@ -82,7 +93,20 @@ void	free_2d_arr(char **arr)
 		i++;
 	}
 	free(arr);
-	arr = NULL;
+}
+
+void	ft_reset(t_commnds *cmnds)
+{
+	if (cmnds->input)
+		free(cmnds->input);
+	int i = 0;
+	while (i < cmnds->cmd_amount)
+	{
+		free_2d_arr(cmnds->cmds[i].cmd);
+		i++;
+	}
+	free(cmnds->cmds);
+	cmnds->cmds = NULL;
 }
 
 int	ft_failexit(t_commnds *cmnds, int cmd_index)
@@ -108,16 +132,13 @@ int	count_words(char *input, int cmd_amount)
 
 	while (input[i] && input[i] != ' ' && input[i] != '|')
 		i++;
-	if (input[i] = ' ')
+	if (input[i] == ' ')
 	{
 		j++;
-		while (input[i] = ' ')
+		while (input[i] == ' ')
 			i++;
 	}
-	if (input[i] = '|')
-		return j;
-
-	
+	return j;
 }
 
 int main(void)
@@ -156,10 +177,10 @@ int main(void)
 		}
 		
 		if (!process_cmd(input, cmnds))
-			ft_failexit(input, cmnds->cmd_amount);
+			ft_failexit(cmnds, cmnds->cmd_amount);
 
-		// reset input;
-		free(input);
+		// reset cmnds;
+		ft_reset(cmnds);
 		input = NULL;
 	}
 	return 0;
